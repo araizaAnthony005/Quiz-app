@@ -1,99 +1,170 @@
-const form = document.getElementById("search-form");
-const input = document.getElementById("search-input");
-const results = document.getElementById("results");
-const themeBtn = document.getElementById("toggle-theme");
-const randomBtn = document.getElementById("random-btn");
+const questions = [
+  {
+    question: "What is the capital of France?",
+    options: ["Berlin", "Madrid", "Paris", "Rome"],
+    answer: "Paris",
+  },
+  {
+    question: "Which language runs in the browser?",
+    options: ["Python", "Java", "C++", "JavaScript"],
+    answer: "JavaScript",
+  },
+  {
+    question: "Who wrote 'To Kill a Mockingbird'?",
+    options: ["Harper Lee", "Hemingway", "Twain", "Shakespeare"],
+    answer: "Harper Lee",
+  },
+  {
+    question: "What planet is known as the Red Planet?",
+    options: ["Earth", "Saturn", "Mars", "Venus"],
+    answer: "Mars",
+  },
+  {
+    question: "What’s the chemical symbol for water?",
+    options: ["WO", "H2O", "HO2", "OH2"],
+    answer: "H2O",
+  },
+  {
+    question: "What year did World War II end?",
+    options: ["1945", "1939", "1918", "1960"],
+    answer: "1945",
+  },
+  {
+    question: "Which ocean is the largest?",
+    options: ["Atlantic", "Indian", "Pacific", "Arctic"],
+    answer: "Pacific",
+  },
+  {
+    question: "Which continent has the most countries?",
+    options: ["Asia", "Africa", "Europe", "South America"],
+    answer: "Africa",
+  },
+  {
+    question: "What is the square root of 64?",
+    options: ["6", "7", "8", "9"],
+    answer: "8",
+  },
+  {
+    question: "What is the fastest land animal?",
+    options: ["Cheetah", "Leopard", "Lion", "Gazelle"],
+    answer: "Cheetah",
+  },
+];
 
-// ===== SEARCH SUBMIT =====
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const query = input.value.trim();
-  if (!query) return;
+questions.sort(() => Math.random() - 0.5);
 
-  results.innerHTML = "<p>Loading...</p>";
+let currentQuestion = 0;
+let score = 0;
+let time = 60;
+let interval;
+let userAnswers = new Array(questions.length).fill(null);
 
-  try {
-    const res = await fetch(
-      `https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`
-    );
-    const data = await res.json();
+const questionEl = document.getElementById("question");
+const optionsEl = document.getElementById("options");
+const nextBtn = document.getElementById("next-btn");
+const prevBtn = document.getElementById("prev-btn");
+const resultBox = document.getElementById("result-box");
+const scoreText = document.getElementById("score-text");
+const timerEl = document.getElementById("timer");
 
-    if (!data.meals) {
-      results.innerHTML = "<p>No recipes found. Try another search.</p>";
-      return;
-    }
+function showQuestion() {
+  const q = questions[currentQuestion];
+  nextBtn.disabled = true;
+  nextBtn.style.opacity = "0.6";
 
-    renderMeals(data.meals);
-  } catch {
-    results.innerHTML = "<p>Something went wrong. Please try again later.</p>";
-  }
-});
+  questionEl.textContent = q.question;
+  optionsEl.innerHTML = "";
 
-// ===== RANDOM RECIPE =====
-randomBtn.addEventListener("click", async () => {
-  results.innerHTML = "<p>Loading...</p>";
-  try {
-    const res = await fetch(
-      "https://www.themealdb.com/api/json/v1/1/random.php"
-    );
-    const data = await res.json();
-    renderMeals(data.meals);
-  } catch {
-    results.innerHTML = "<p>Something went wrong. Try again.</p>";
-  }
-});
+  q.options.forEach((option) => {
+    const btn = document.createElement("button");
+    btn.textContent = option;
 
-// ===== RENDER MEALS =====
-function renderMeals(meals) {
-  results.innerHTML = "";
-  meals.forEach((meal) => {
-    const card = document.createElement("div");
-    card.className = "recipe-card";
+    if (userAnswers[currentQuestion] === option) {
+      nextBtn.disabled = false;
+      nextBtn.style.opacity = "1";
 
-    let ingredients = "";
-    for (let i = 1; i <= 20; i++) {
-      const ing = meal[`strIngredient${i}`];
-      const meas = meal[`strMeasure${i}`];
-      if (ing && ing.trim()) {
-        ingredients += `<li>${meas} ${ing}</li>`;
+      btn.style.outline = "2px solid #0077ff";
+      btn.disabled = true;
+
+      if (option === q.answer) {
+        btn.style.backgroundColor = "#4caf50";
+        btn.style.color = "#fff";
+      } else {
+        btn.style.opacity = "0.6";
       }
     }
 
-    card.innerHTML = `
-      <img src="${meal.strMealThumb}" alt="${meal.strMeal}" />
-      <div class="info">
-        <h3>${meal.strMeal}</h3>
-        <ul>${ingredients}</ul>
-        <a href="${
-          meal.strSource || meal.strYoutube
-        }" target="_blank">View Recipe</a>
-      </div>
-    `;
-
-    results.appendChild(card);
+    btn.addEventListener("click", () => selectAnswer(btn, q.answer));
+    optionsEl.appendChild(btn);
   });
 }
 
-// ===== THEME TOGGLE =====
-const savedTheme = localStorage.getItem("theme");
+function selectAnswer(button, correctAnswer) {
+  const selected = button.textContent;
 
-if (savedTheme === "dark") {
-  document.body.setAttribute("data-theme", "dark");
-  themeBtn.textContent = "☀️";
-} else {
-  themeBtn.textContent = "🌓";
+  if (userAnswers[currentQuestion] == null) {
+    if (selected === correctAnswer) {
+      score++;
+    }
+  }
+
+  userAnswers[currentQuestion] = selected;
+
+  const allButtons = optionsEl.querySelectorAll("button");
+  allButtons.forEach((btn) => {
+    btn.disabled = true;
+    if (btn.textContent === correctAnswer) {
+      btn.style.backgroundColor = "#4caf50";
+      btn.style.color = "#fff";
+    } else {
+      btn.style.opacity = "0.6";
+    }
+
+    if (btn.textContent === selected) {
+      btn.style.outline = "2px solid #0077ff";
+    }
+  });
+
+  nextBtn.disabled = false;
+  nextBtn.style.opacity = "1";
 }
 
-themeBtn.addEventListener("click", () => {
-  const isDark = document.body.getAttribute("data-theme") === "dark";
+function showResult() {
+  clearInterval(interval);
+  document.getElementById("quiz-box").classList.add("hidden");
+  resultBox.classList.remove("hidden");
+  scoreText.textContent = `You got ${score} out of ${questions.length} correct.`;
+}
 
-  if (isDark) {
-    document.body.removeAttribute("data-theme");
-    localStorage.setItem("theme", "light");
-    themeBtn.textContent = "🌓";
+function startTimer() {
+  interval = setInterval(() => {
+    time--;
+    const minutes = String(Math.floor(time / 60)).padStart(2, "0");
+    const seconds = String(time % 60).padStart(2, "0");
+    timerEl.textContent = `${minutes}:${seconds}`;
+
+    if (time <= 0) {
+      clearInterval(interval);
+      showResult();
+    }
+  }, 1000);
+}
+
+nextBtn.addEventListener("click", () => {
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    showQuestion();
   } else {
-    document.body.setAttribute("data-theme", "dark");
-    localStorage.setItem("theme", "dark");
-    themeBtn.textContent = "☀️";
+    showResult();
   }
 });
+
+prevBtn.addEventListener("click", () => {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    showQuestion();
+  }
+});
+
+startTimer();
+showQuestion();
