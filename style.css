@@ -22,13 +22,13 @@ body {
 /* Back to Portfolio */
 .back-btn {
   position: fixed;
-  top: 16px;
-  left: 16px;
+  top: 24px;
+  left: 20px;
   font-size: clamp(0.8rem, 1vw, 0.95rem);
-  color: var(--primary);
+  color: var(--accent-color);
   text-decoration: none;
   padding: 6px 12px;
-  border: 1.5px solid var(--primary);
+  border: 1.5px solid var(--accent-color);
   border-radius: 6px;
   background: transparent;
   max-width: 95vw;
@@ -40,12 +40,14 @@ body {
 }
 
 .back-btn:hover {
-  background: var(--primary);
+  background: var(--accent-color);
   color: white;
 }
 
 @media (max-width: 600px) {
   .back-btn {
+    top: 28px;
+    left: 20px;
     font-size: 0.85rem;
     padding: 8px 12px;
   }
@@ -164,6 +166,14 @@ h2 {
     font-size: 1rem;
     text-align: center;
     margin-top: 8px;
+  }
+
+  .recipe-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 16px;
   }
 }
 
